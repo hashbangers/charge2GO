@@ -11,8 +11,10 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
+import android.widget.Button;
 import android.widget.Toast;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -62,10 +64,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     DatabaseReference userReference;
     String name;
     ArrayList<LatLng> pathPoints;
-
+    boolean outOfCharge = false;
+    Button requestCharge;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         database = FirebaseDatabase.getInstance();
@@ -79,8 +83,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        requestCharge = findViewById(R.id.request_button);
+        requestCharge.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                outOfCharge = true;
+            }
+        });
     }
-
 
     @Override
     public void onMapReady(final GoogleMap googleMap) {
@@ -121,7 +131,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void startTravel() {
         currentMarker = mMap.addMarker(new MarkerOptions()
-            .position(pathPoints.get(0)));
+            .position(pathPoints.get(0))
+            .title("Current Location"));
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pathPoints.get(0), 15));
         animateMarker();
@@ -130,7 +141,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void animateMarker() {
         final Handler handler = new Handler();
         final long start = SystemClock.uptimeMillis();
-        Projection proj = mMap.getProjection();
         final long duration = 30000;
         final Interpolator interpolator = new LinearInterpolator();
 
@@ -141,20 +151,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void run() {
                 long elapsed = SystemClock.uptimeMillis() - start;
                 float t = interpolator.getInterpolation((float) elapsed / duration);
-                if(i<pathPoints.size())
+                if(i<pathPoints.size()){
                     currentMarker.setPosition(pathPoints.get(i));
-                i++;
-
-                if (t < 1.0) {
-                    // Post again 16ms later.
-                    handler.postDelayed(this, 160);
-                } else {
-                    if (false) {
-                        currentMarker.setVisible(false);
-                    } else {
-                        currentMarker.setVisible(true);
+                    i++;
+                    Log.d(TAG, "the thing ran for the "+i+"th time");
+                    if(!outOfCharge) {
+                        handler.postDelayed(this, 160);
                     }
                 }
+
+
             }
         });
 
