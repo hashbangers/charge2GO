@@ -4,7 +4,7 @@ package com.example.rkinabhi.merchack;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 
-public class Car {
+public class donorCar {
 
     GeoFire geoFire;
     GeoLocation curLocation;
@@ -15,6 +15,6 @@ public class Car {
     double mileage;
     Role role;
 
-    Car(){}
+    donorCar(){}
 
 }

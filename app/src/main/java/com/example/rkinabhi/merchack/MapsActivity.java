@@ -5,10 +5,14 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.Toast;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -17,6 +21,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -48,12 +53,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FusedLocationProviderClient fusedLocationProviderClient;
     private Location originLocation;
     private Location destinationLocation;
+    private Location currentLocation;
     Marker originMarker;
     Marker destinationMarker;
+    Marker currentMarker;
     FirebaseDatabase database;
     GeoFire geofire;
     DatabaseReference userReference;
     String name;
+    ArrayList<LatLng> pathPoints;
 
 
     @Override
@@ -111,6 +119,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+    private void startTravel() {
+        currentMarker = mMap.addMarker(new MarkerOptions()
+            .position(pathPoints.get(0)));
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pathPoints.get(0), 15));
+        animateMarker();
+    }
+
+    private void animateMarker() {
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+        Projection proj = mMap.getProjection();
+        final long duration = 30000;
+        final Interpolator interpolator = new LinearInterpolator();
+
+        handler.post(new Runnable() {
+            int i=0;
+
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                float t = interpolator.getInterpolation((float) elapsed / duration);
+                if(i<pathPoints.size())
+                    currentMarker.setPosition(pathPoints.get(i));
+                i++;
+
+                if (t < 1.0) {
+                    // Post again 16ms later.
+                    handler.postDelayed(this, 160);
+                } else {
+                    if (false) {
+                        currentMarker.setVisible(false);
+                    } else {
+                        currentMarker.setVisible(true);
+                    }
+                }
+            }
+        });
+
+    }
+
+
     void getDirections(){
         String url =  getRequestUrl(
                 new LatLng(originLocation.getLatitude(), originLocation.getLongitude()),
@@ -118,8 +168,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         TaskRequestDirections taskRequestDirections = new TaskRequestDirections();
         taskRequestDirections.execute(url);
-
-
     }
 
     private String getRequestUrl(LatLng origin, LatLng destination) {
@@ -182,7 +230,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //parse json here
             TaskParser taskParser = new TaskParser();
             taskParser.execute(s);
-
         }
     }
 
@@ -207,16 +254,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> lists) {
-            ArrayList points = null;
             PolylineOptions polylineOptions = null;
+            pathPoints = new ArrayList<LatLng>();
+
             for(List<HashMap<String, String>> path : lists){
-                points = new ArrayList();
+                ArrayList points = new ArrayList();
                 polylineOptions = new PolylineOptions();
 
                 for(HashMap<String, String> point : path){
                     double lat = Double.parseDouble(point.get("lat"));
                     double lon = Double.parseDouble(point.get("lon"));
                     points.add(new LatLng(lat, lon));
+                    pathPoints.add(new LatLng(lat, lon));
                 }
 
                 polylineOptions.addAll(points);
@@ -224,17 +273,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 polylineOptions.color(Color.BLUE);
                 polylineOptions.geodesic(true);
             }
+
             if(polylineOptions!=null){
                 mMap.addPolyline(polylineOptions);
+                startTravel();
             } else {
                 Toast.makeText(MapsActivity.this, "Direction not found" , Toast.LENGTH_SHORT).show();
-
             }
 
-
-
         }
-
 
     }
 
