@@ -12,6 +12,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "from main activity";
     EditText name;
+    EditText charge;
+    EditText mileage;
     Button goToMap;
     Intent intent;
     @Override
@@ -19,13 +21,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         name = findViewById(R.id.Name);
+        charge = findViewById(R.id.Charge);
+        mileage = findViewById(R.id.Mileage);
         goToMap = findViewById(R.id.go_to_map);
         intent = new Intent(this, MapsActivity.class);
         goToMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d(TAG, "onClick: "+name.getText());
                 intent.putExtra("Name", name.getText().toString());
+                intent.putExtra("Charge", charge.getText().toString());
+                intent.putExtra("Mileage", mileage.getText().toString());
                 startActivity(intent);
             }
         });

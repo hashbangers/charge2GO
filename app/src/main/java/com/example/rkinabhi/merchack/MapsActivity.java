@@ -63,6 +63,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     GeoFire geofire;
     DatabaseReference userReference;
     String name;
+    double charge;
+    double mileage;
     ArrayList<LatLng> pathPoints;
     boolean outOfCharge = false;
     Button requestCharge;
@@ -74,6 +76,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
         database = FirebaseDatabase.getInstance();
         name = this.getIntent().getStringExtra("Name");
+        charge = Double.parseDouble(this.getIntent().getStringExtra("Charge"));
+        mileage = Double.parseDouble(this.getIntent().getStringExtra("Mileage"));
         userReference = database.getReference("CARS/"+name);
         geofire = new GeoFire(userReference);
 
@@ -131,13 +135,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void startTravel() {
         currentLocation = new Location(LocationManager.GPS_PROVIDER);
         currentLocation.setLatitude(pathPoints.get(0).latitude);
-        currentLocation.setLatitude(pathPoints.get(0).longitude);
+        currentLocation.setLongitude(pathPoints.get(0).longitude);
         geofire.setLocation("currentLocation",
                 new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
         currentMarker = mMap.addMarker(new MarkerOptions()
             .position(pathPoints.get(0))
             .title("Current Location"));
 
+        currentMarker.setSnippet(Double.toString(charge));
+        database.getReference("CARS/"+name+"/Charge").setValue(charge);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pathPoints.get(0), 15));
         animateMarker();
     }
@@ -157,10 +163,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 float t = interpolator.getInterpolation((float) elapsed / duration);
                 if(i<pathPoints.size()){
                     currentLocation.setLatitude(pathPoints.get(i).latitude);
-                    currentLocation.setLatitude(pathPoints.get(i).longitude);
+                    currentLocation.setLongitude(pathPoints.get(i).longitude);
                     geofire.setLocation("currentLocation",
                             new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
+                    charge--;
                     currentMarker.setPosition(pathPoints.get(i));
+                    currentMarker.setSnippet(Double.toString(charge));
+                    database.getReference("CARS/"+name+"/Charge").setValue(charge);
+                    database.getReference("CARS/"+name+"/Charge").setValue(charge);
+
                     i++;
                     Log.d(TAG, "the thing ran for the "+i+"th time");
                     if(!outOfCharge) {
@@ -169,9 +180,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         });
-
     }
-
 
     void getDirections(){
         String url =  getRequestUrl(

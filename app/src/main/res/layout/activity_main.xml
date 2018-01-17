@@ -6,18 +6,35 @@
     android:layout_height="match_parent"
     tools:context="com.example.rkinabhi.merchack.MainActivity">
 
+
     <EditText
         android:id="@+id/Name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Name" />
 
-    <Button
-        android:layout_below="@+id/Name"
+    <EditText
+        android:id="@+id/Charge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Go to Map"
-        android:id="@+id/go_to_map"/>
+        android:layout_below="@+id/Name"
+        android:hint="Charge"
+        android:inputType="numberDecimal" />
+
+    <EditText
+        android:id="@+id/Mileage"
+        android:layout_below="@+id/Charge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint = "Mileage"
+        android:inputType="numberDecimal" />
+
+    <Button
+        android:id="@+id/go_to_map"
+        android:layout_below="@+id/Mileage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Go to Map"/>
 
 
 </RelativeLayout>
