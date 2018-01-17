@@ -74,9 +74,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
         database = FirebaseDatabase.getInstance();
         name = this.getIntent().getStringExtra("Name");
-        userReference = database.getReference(name);
+        userReference = database.getReference("CARS/"+name);
         geofire = new GeoFire(userReference);
-
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -130,6 +129,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void startTravel() {
+        currentLocation = new Location(LocationManager.GPS_PROVIDER);
+        currentLocation.setLatitude(pathPoints.get(0).latitude);
+        currentLocation.setLatitude(pathPoints.get(0).longitude);
+        geofire.setLocation("currentLocation",
+                new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
         currentMarker = mMap.addMarker(new MarkerOptions()
             .position(pathPoints.get(0))
             .title("Current Location"));
@@ -152,6 +156,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 long elapsed = SystemClock.uptimeMillis() - start;
                 float t = interpolator.getInterpolation((float) elapsed / duration);
                 if(i<pathPoints.size()){
+                    currentLocation.setLatitude(pathPoints.get(i).latitude);
+                    currentLocation.setLatitude(pathPoints.get(i).longitude);
+                    geofire.setLocation("currentLocation",
+                            new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
                     currentMarker.setPosition(pathPoints.get(i));
                     i++;
                     Log.d(TAG, "the thing ran for the "+i+"th time");
@@ -159,8 +167,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         handler.postDelayed(this, 160);
                     }
                 }
-
-
             }
         });
 
