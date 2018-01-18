@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "179550036363",
+    "firebase_url": "https://merchack-fdcb7.firebaseio.com",
+    "project_id": "merchack-fdcb7",
+    "storage_bucket": "merchack-fdcb7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:179550036363:android:97a574d1b6dbc473",
+        "android_client_info": {
+          "package_name": "com.example.rkinabhi.merchack"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "179550036363-qvuknnt71gt2d5ua6grdcm4qd7837k9e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.rkinabhi.merchack",
+            "certificate_hash": "33f89f65b8e72a11a951300ccf84660d7017169b"
+          }
+        },
+        {
+          "client_id": "179550036363-2p8vbkptalg06i1d77tg4rn0al4s3vbl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBl8ru_9AN3xDOC1CHC4Aut-f1l65uUn1k"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "179550036363-2p8vbkptalg06i1d77tg4rn0al4s3vbl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
