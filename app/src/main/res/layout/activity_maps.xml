@@ -22,7 +22,5 @@
         android:hint="Request charge" />
 
 
-
-
-
+    
 </RelativeLayout>
