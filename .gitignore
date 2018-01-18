@@ -1,8 +1,9 @@
-local.properties
-bin
-gen
-out
-build
+*.iml
 .gradle
-.settings
-.idea
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/captures
+.externalNativeBuild
