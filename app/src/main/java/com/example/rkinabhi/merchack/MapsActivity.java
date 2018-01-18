@@ -117,7 +117,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                Log.d(TAG, "onMapClick: "+latLng);
+
                 destinationLocation = new Location(LocationManager.GPS_PROVIDER);
                 destinationLocation.setLatitude(latLng.latitude);
                 destinationLocation.setLongitude(latLng.longitude);
