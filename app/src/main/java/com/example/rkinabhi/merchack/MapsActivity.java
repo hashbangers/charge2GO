@@ -18,6 +18,7 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -33,6 +34,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -65,6 +69,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     GeoFire requestsGeoFire;
     DatabaseReference userReference;
     DatabaseReference requestsReference;
+    DatabaseReference notificationsReference;
     String name;
     double charge;
     double mileage;
@@ -72,7 +77,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     boolean outOfCharge = false;
     Button requestCharge;
 
-    Dialog requestDialog;
+    Dialog sendRequestDialog;
+    Dialog receiveRequestDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,10 +91,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mileage = Double.parseDouble(this.getIntent().getStringExtra("Mileage"));
         userReference = database.getReference("CARS/"+name);
         requestsReference = database.getReference("REQUESTS/"+name);
+        notificationsReference = database.getReference("CARS/"+name+"/notifications");
         userGeofire = new GeoFire(userReference);
         requestsGeoFire = new GeoFire(requestsReference);
-        requestDialog = new Dialog(this);
-
+        sendRequestDialog = new Dialog(this);
+        receiveRequestDialog = new Dialog(this);
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -96,29 +103,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         requestCharge = findViewById(R.id.request_button);
+        requestCharge.setOnClickListener(new RequestChargeListener());
 
-        //changed with popup code - on hit of request button
-        requestCharge.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                requestDialog.setContentView(R.layout.request_dialog);
-                Button sendRequest = requestDialog.findViewById(R.id.btnReq);
-                final EditText requestChargeAmount = requestDialog.findViewById(R.id.requestChargeAmount);
+        notificationsReference.addChildEventListener(new NotificationsListener());
 
-                // on hit of send request button
-                sendRequest.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        requestsReference.child("requiredCharge").setValue(requestChargeAmount.getText().toString());
-                        requestsGeoFire.setLocation("currentLocation", new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
-                        requestDialog.dismiss();
-                    }
-                });
-                requestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                requestDialog.show();
-                outOfCharge = true;
-            }
-        });
     }
 
     @Override
@@ -329,7 +317,52 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
         }
+    }
 
+    private class RequestChargeListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(View view) {
+            sendRequestDialog.setContentView(R.layout.send_request_dialog);
+            Button sendRequest = sendRequestDialog.findViewById(R.id.btnReq);
+            sendRequest.setOnClickListener(new SendRequest());
+            sendRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            sendRequestDialog.show();
+            outOfCharge = true;
+        }
+    }
+
+    private class SendRequest implements View.OnClickListener {
+        @Override
+        public void onClick(View view) {
+            EditText requestChargeAmount = sendRequestDialog.findViewById(R.id.requestChargeAmount);
+            requestsReference.child("requiredCharge").setValue(requestChargeAmount.getText().toString());
+            requestsGeoFire.setLocation("currentLocation", new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
+            sendRequestDialog.dismiss();
+        }
+    }
+
+    private class NotificationsListener implements ChildEventListener {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            String requestingCarName = dataSnapshot.getKey();
+            double requiredCharge = dataSnapshot.child("requiredCharge").getValue(double.class);
+
+            receiveRequestDialog.setContentView(R.layout.recieve_request_dialog);
+            receiveRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            TextView requestedCharge = receiveRequestDialog.findViewById(R.id.textView);
+            receiveRequestDialog.show();
+            requestedCharge.setText(Double.toString(requiredCharge));
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {}
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+        @Override
+        public void onCancelled(DatabaseError databaseError) {}
     }
 
 
