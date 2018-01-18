@@ -1,7 +1,9 @@
 package com.example.rkinabhi.merchack;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
@@ -15,6 +17,7 @@ import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -23,7 +26,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -42,7 +44,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,14 +61,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Marker destinationMarker;
     Marker currentMarker;
     FirebaseDatabase database;
-    GeoFire geofire;
+    GeoFire userGeofire;
+    GeoFire requestsGeoFire;
     DatabaseReference userReference;
+    DatabaseReference requestsReference;
     String name;
     double charge;
     double mileage;
     ArrayList<LatLng> pathPoints;
     boolean outOfCharge = false;
     Button requestCharge;
+
+    Dialog requestDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +84,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         charge = Double.parseDouble(this.getIntent().getStringExtra("Charge"));
         mileage = Double.parseDouble(this.getIntent().getStringExtra("Mileage"));
         userReference = database.getReference("CARS/"+name);
-        geofire = new GeoFire(userReference);
+        requestsReference = database.getReference("REQUESTS/"+name);
+        userGeofire = new GeoFire(userReference);
+        requestsGeoFire = new GeoFire(requestsReference);
+        requestDialog = new Dialog(this);
+
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -87,9 +96,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         requestCharge = findViewById(R.id.request_button);
+
+        //changed with popup code - on hit of request button
         requestCharge.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                requestDialog.setContentView(R.layout.request_dialog);
+                Button sendRequest = requestDialog.findViewById(R.id.btnReq);
+                final EditText requestChargeAmount = requestDialog.findViewById(R.id.requestChargeAmount);
+
+                // on hit of send request button
+                sendRequest.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        requestsReference.child("requiredCharge").setValue(requestChargeAmount.getText().toString());
+                        requestsGeoFire.setLocation("currentLocation", new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
+                        requestDialog.dismiss();
+                    }
+                });
+                requestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                requestDialog.show();
                 outOfCharge = true;
             }
         });
@@ -104,7 +130,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onComplete(@NonNull Task<Location> task) {
                 originLocation = task.getResult();
-                geofire.setLocation("originLocation",new GeoLocation(originLocation.getLatitude(), originLocation.getLongitude()));
+                userGeofire.setLocation("originLocation",new GeoLocation(originLocation.getLatitude(), originLocation.getLongitude()));
                 originMarker = googleMap.addMarker(new MarkerOptions().position(new LatLng(originLocation.getLatitude(), originLocation.getLongitude())).title("Origin Location"));
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(originLocation.getLatitude(), originLocation.getLongitude()), 15));
                 getDestinationLocation();
@@ -121,7 +147,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 destinationLocation = new Location(LocationManager.GPS_PROVIDER);
                 destinationLocation.setLatitude(latLng.latitude);
                 destinationLocation.setLongitude(latLng.longitude);
-                geofire.setLocation("destinationLocation",
+                userGeofire.setLocation("destinationLocation",
                         new GeoLocation(destinationLocation.getLatitude(), destinationLocation.getLongitude()));
                 destinationMarker = mMap.addMarker(new MarkerOptions().position(
                         new LatLng(destinationLocation.getLatitude(), destinationLocation.getLongitude()))
@@ -136,7 +162,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         currentLocation = new Location(LocationManager.GPS_PROVIDER);
         currentLocation.setLatitude(pathPoints.get(0).latitude);
         currentLocation.setLongitude(pathPoints.get(0).longitude);
-        geofire.setLocation("currentLocation",
+        userGeofire.setLocation("currentLocation",
                 new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
         currentMarker = mMap.addMarker(new MarkerOptions()
             .position(pathPoints.get(0))
@@ -164,7 +190,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if(i<pathPoints.size()){
                     currentLocation.setLatitude(pathPoints.get(i).latitude);
                     currentLocation.setLongitude(pathPoints.get(i).longitude);
-                    geofire.setLocation("currentLocation",
+                    userGeofire.setLocation("currentLocation",
                             new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
                     charge--;
                     currentMarker.setPosition(pathPoints.get(i));

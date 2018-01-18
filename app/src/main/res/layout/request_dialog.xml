@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="340dp"
+    android:layout_height="480dp"
+    android:background="@color/colorPrimaryDark"
+    android:padding="5dp"
+    android:layout_gravity="center">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="340dp"
+        android:layout_height="480dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:foregroundGravity="center"
+        android:background="@drawable/request_dialog_image"
+        android:contentDescription="@string/app_name"
+        android:scaleType="centerCrop"
+        tools:layout_editor_absoluteX="29dp"
+        tools:layout_editor_absoluteY="6dp" />
+
+    <android.support.v7.widget.CardView
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_alignBottom="@+id/imageView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="14dp"
+        cardBackgroundColor="@color/colorPrimary"
+        cardCornerRadius="16dp"
+        cardElevation="10dp"
+        android:id="@+id/cardView">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignStart="@+id/cardView"
+            android:layout_below="@+id/editText3">
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:fontFamily="monospace"
+                android:text="REQUEST"
+                android:textColor="@android:color/black"
+                android:textSize="24sp" />
+
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="85dp"
+        android:layout_height="50dp"
+        android:layout_above="@+id/requestChargeAmount"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="129dp"
+        android:textAlignment="center"
+        android:textSize="18sp"
+        android:visibility="visible" />
+
+    <EditText
+        android:id="@+id/requestChargeAmount"
+        android:layout_width="85dp"
+        android:layout_height="50dp"
+        android:layout_above="@+id/cardView"
+        android:layout_alignStart="@+id/textView3"
+        android:layout_marginBottom="22dp"
+        android:background="#f2f2f2"
+        android:ems="10"
+        android:inputType="number"
+        android:textAlignment="center" />
+
+    <Button
+        android:id="@+id/btnReq"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/cardView"
+        android:layout_alignStart="@+id/cardView"
+        android:width="300dp"
+        android:height="60dp"
+        android:background="@color/indigo"
+        android:text="Request"
+        android:textColor="@color/white"
+        android:textSize="20dp" />
+
+</RelativeLayout>
