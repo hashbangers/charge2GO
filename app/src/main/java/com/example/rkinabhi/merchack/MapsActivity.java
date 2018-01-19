@@ -498,57 +498,70 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private class RequestNotificationsListener implements ChildEventListener {
         @Override
-        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-            try {
-                final String requestingCarName = dataSnapshot.getKey();
-                if(!requestingCarName.equals(name)) {
-                    final String requiredCharge = dataSnapshot.child("requiredCharge").getValue(String.class);
-                    requestLocationReference = database.getReference("REQUESTS/"+requestingCarName);
-                    new GeoFire(requestLocationReference).getLocation("currentLocation", new LocationCallback() {
-                        @Override
-                        public void onLocationResult(String key, GeoLocation location) {
-                            try {
-                                Location requestorLocation = new Location(LocationManager.GPS_PROVIDER);
-                                requestorLocation.setLatitude(location.latitude);
-                                requestorLocation.setLongitude(location.longitude);
-                                if ((requestorLocation.distanceTo(currentLocation)) < requestRadius) {
-                                    receiveRequestDialog.setContentView(R.layout.recieve_request_dialog);
-                                    receiveRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                                    TextView requestedCharge = receiveRequestDialog.findViewById(R.id.textView);
-                                    TextView canGiveCharge = receiveRequestDialog.findViewById(R.id.textView2);
-                                    final EditText donatingCharge = receiveRequestDialog.findViewById(R.id.editText3);
-                                    canGiveCharge.setText(Double.toString(charge-batteryCapacity*0.2-distanceToDestination/mileage));
-                                    Button accept = receiveRequestDialog.findViewById(R.id.yes);
-                                    accept.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            carState = CarState.Responding;
-                                            requestNotificationsReference.removeValue();
-                                            DatabaseReference responseRefernce = database.getReference("CARS/"+requestingCarName+"/response/"+name);
-                                            responseRefernce.child("OTP").setValue("1243");
-                                            responseRefernce.child("donatingCharge").setValue(donatingCharge.getText().toString());
-                                            receiveRequestDialog.dismiss();
-                                            new GeoFire(responseRefernce).setLocation("currentLocation", new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
+        public void onChildAdded(final DataSnapshot dataSnapshotSuper, String s) {
+            final String requestingCarName = dataSnapshotSuper.getKey();
+            if(!requestingCarName.equals(name)) {
+                DatabaseReference reqChargeTemp = database.getReference("REQUESTS/"+requestingCarName+"/requiredCharge");
+                Log.d(TAG, "onChildAdded: "+"sup");
+
+                reqChargeTemp.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        final String requiredCharge = dataSnapshot.getValue(String.class);
+                        Log.d(TAG, "onChildAdded rech from value: "+requiredCharge);
+                        DatabaseReference curLocTemp = dataSnapshotSuper.child("currentLocation").getRef();
+                        curLocTemp.addChildEventListener(new ChildEventListener() {
+                            @Override
+                            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                                new GeoFire(dataSnapshotSuper.getRef()).getLocation("currentLocation", new LocationCallback() {
+                                    @Override
+                                    public void onLocationResult(String key, GeoLocation location) {
+                                        Location requestorLocation = new Location(LocationManager.GPS_PROVIDER);
+                                        requestorLocation.setLatitude(location.latitude);
+                                        requestorLocation.setLongitude(location.longitude);
+                                        if ((requestorLocation.distanceTo(currentLocation)) < requestRadius) {
+                                            receiveRequestDialog.setContentView(R.layout.recieve_request_dialog);
+                                            receiveRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                            TextView requestedCharge = receiveRequestDialog.findViewById(R.id.textView);
+                                            TextView canGiveCharge = receiveRequestDialog.findViewById(R.id.textView2);
+                                            final EditText donatingCharge = receiveRequestDialog.findViewById(R.id.editText3);
+                                            canGiveCharge.setText(Double.toString(charge-batteryCapacity*0.2-distanceToDestination/mileage));
+                                            Button accept = receiveRequestDialog.findViewById(R.id.yes);
+                                            accept.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View view) {
+                                                    carState = CarState.Responding;
+                                                    requestNotificationsReference.removeValue();
+                                                    DatabaseReference responseRefernce = database.getReference("CARS/"+requestingCarName+"/response/"+name);
+                                                    responseRefernce.child("OTP").setValue("1243");
+                                                    responseRefernce.child("donatingCharge").setValue(donatingCharge.getText().toString());
+                                                    receiveRequestDialog.dismiss();
+                                                    new GeoFire(responseRefernce).setLocation("currentLocation", new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
+                                                }
+                                            });
+                                            receiveRequestDialog.show();
+                                            requestedCharge.setText(requiredCharge);
                                         }
-                                    });
-                                    receiveRequestDialog.show();
-                                    requestedCharge.setText(requiredCharge);
-                                }
-                            } catch (Exception e){
-                                e.printStackTrace();
+                                    }
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {}
+                                });
                             }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-
-                }
-            } catch (Exception e){}
+                            @Override
+                            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+                            @Override
+                            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+                            @Override
+                            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {}
+                        });
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {}
+                });
+            }
         }
-
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
         @Override
@@ -571,20 +584,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 new GeoFire(responseReference).getLocation("currentLocation", new LocationCallback() {
                     @Override
                     public void onLocationResult(String key, GeoLocation location) {
+                        try {
 //                        Toast.makeText(MapsActivity.this, dataSnapshot.getKey()
 //                                + " , " + responseReference.child("OTP").value.toString()
 //                                + " , " + dataSnapshot.child("donatingCharge").getValue().toString(), Toast.LENGTH_SHORT).show();
-                        donorMarker = mMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(location.latitude, location.longitude))
-                                .title("Donor Car"));
-                        secondaryDestinationLocation = new Location(LocationManager.GPS_PROVIDER);
-                        secondaryDestinationLocation.setLatitude(location.latitude);
-                        secondaryDestinationLocation.setLongitude(location.longitude);
+                            donorMarker = mMap.addMarker(new MarkerOptions()
+                                    .position(new LatLng(location.latitude, location.longitude))
+                                    .title("Donor Car"));
+                            secondaryDestinationLocation = new Location(LocationManager.GPS_PROVIDER);
+                            secondaryDestinationLocation.setLatitude(location.latitude);
+                            secondaryDestinationLocation.setLongitude(location.longitude);
 
-                        innerCircle.remove();
-                        outerCircle.remove();
-                        carState = CarState.TravellingToSecondaryDestination;
-                        getDirections(currentLocation, secondaryDestinationLocation);
+                            innerCircle.remove();
+                            outerCircle.remove();
+                            carState = CarState.TravellingToSecondaryDestination;
+                            getDirections(currentLocation, secondaryDestinationLocation);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
 
                     }
 
