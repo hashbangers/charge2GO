@@ -99,15 +99,15 @@
       <file leaf-file-name="MapsActivity.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/rkinabhi/merchack/MapsActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="84">
-              <caret line="530" column="58" lean-forward="false" selection-start-line="530" selection-start-column="58" selection-end-line="530" selection-end-column="58" />
+            <state relative-caret-position="-49">
+              <caret line="534" column="49" lean-forward="false" selection-start-line="534" selection-start-column="49" selection-end-line="534" selection-end-column="49" />
               <folding>
                 <element signature="e#5830#6655#0" expanded="true" />
                 <element signature="e#6654#6655#0" expanded="true" />
-                <element signature="e#6835#7887#0" expanded="true" />
-                <element signature="e#7886#7887#0" expanded="true" />
-                <element signature="e#24399#25518#0" expanded="true" />
-                <element signature="e#25517#25518#0" expanded="true" />
+                <element signature="e#6835#7954#0" expanded="true" />
+                <element signature="e#7953#7954#0" expanded="true" />
+                <element signature="e#25043#26206#0" expanded="true" />
+                <element signature="e#26205#26206#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -194,6 +194,7 @@
       <find>chargeDef</find>
       <find>recieve</find>
       <find>requestno</find>
+      <find>travellingTo</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -2127,7 +2128,7 @@
   <component name="PropertiesComponent">
     <property name="android.sdk.path" value="D:/softwares/androidSDK" />
     <property name="last_opened_file_path" value="$USER_HOME$/Downloads/Req_Interface/Req_Interface" />
-    <property name="device.picker.selection" value="99ede83" />
+    <property name="device.picker.selection" value="G6AXB731H203BYF" />
     <property name="last_directory_selection" value="$PROJECT_DIR$/app/src/main/res/drawable" />
   </component>
   <component name="RecentsManager">
@@ -2225,7 +2226,7 @@
       <option name="DEEP_LINK" value="" />
       <option name="ACTIVITY_CLASS" value="" />
       <method>
-        <option name="com.android.instantApps.provision.BeforeRunTask" enabled="true" clearCache="false" clearProvisionedDevices="false" myTimestamp="1516399170623" />
+        <option name="com.android.instantApps.provision.BeforeRunTask" enabled="true" clearCache="false" clearProvisionedDevices="false" myTimestamp="1516402723116" />
       </method>
     </configuration>
     <configuration default="true" type="AndroidTestRunConfigurationType" factoryName="Android Instrumented Tests">
@@ -2272,7 +2273,7 @@
         <option name="ADVANCED_PROFILING_ENABLED" value="false" />
       </Profilers>
       <method>
-        <option name="com.android.instantApps.provision.BeforeRunTask" enabled="true" clearCache="false" clearProvisionedDevices="false" myTimestamp="1516399170623" />
+        <option name="com.android.instantApps.provision.BeforeRunTask" enabled="true" clearCache="false" clearProvisionedDevices="false" myTimestamp="1516402723116" />
       </method>
     </configuration>
     <configuration default="true" type="Application" factoryName="Application">
@@ -2495,11 +2496,12 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-9" y="29" width="1938" height="1060" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="Android Profiler" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Build Variants" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
-      <window_info id="Logcat" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.44241732" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Logcat" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.44697833" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -2637,10 +2639,10 @@
           <folding>
             <element signature="e#5830#6655#0" expanded="true" />
             <element signature="e#6654#6655#0" expanded="true" />
-            <element signature="e#6835#7887#0" expanded="true" />
-            <element signature="e#7886#7887#0" expanded="true" />
-            <element signature="e#24399#25518#0" expanded="true" />
-            <element signature="e#25517#25518#0" expanded="true" />
+            <element signature="e#6835#7954#0" expanded="true" />
+            <element signature="e#7953#7954#0" expanded="true" />
+            <element signature="e#25043#26206#0" expanded="true" />
+            <element signature="e#26205#26206#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -2721,10 +2723,10 @@
           <folding>
             <element signature="e#5830#6655#0" expanded="true" />
             <element signature="e#6654#6655#0" expanded="true" />
-            <element signature="e#6835#7887#0" expanded="true" />
-            <element signature="e#7886#7887#0" expanded="true" />
-            <element signature="e#24399#25518#0" expanded="true" />
-            <element signature="e#25517#25518#0" expanded="true" />
+            <element signature="e#6835#7954#0" expanded="true" />
+            <element signature="e#7953#7954#0" expanded="true" />
+            <element signature="e#25043#26206#0" expanded="true" />
+            <element signature="e#26205#26206#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -2759,10 +2761,10 @@
           <folding>
             <element signature="e#5830#6655#0" expanded="true" />
             <element signature="e#6654#6655#0" expanded="true" />
-            <element signature="e#6835#7887#0" expanded="true" />
-            <element signature="e#7886#7887#0" expanded="true" />
-            <element signature="e#24399#25518#0" expanded="true" />
-            <element signature="e#25517#25518#0" expanded="true" />
+            <element signature="e#6835#7954#0" expanded="true" />
+            <element signature="e#7953#7954#0" expanded="true" />
+            <element signature="e#25043#26206#0" expanded="true" />
+            <element signature="e#26205#26206#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -2850,10 +2852,10 @@
           <folding>
             <element signature="e#5830#6655#0" expanded="true" />
             <element signature="e#6654#6655#0" expanded="true" />
-            <element signature="e#6835#7887#0" expanded="true" />
-            <element signature="e#7886#7887#0" expanded="true" />
-            <element signature="e#24399#25518#0" expanded="true" />
-            <element signature="e#25517#25518#0" expanded="true" />
+            <element signature="e#6835#7954#0" expanded="true" />
+            <element signature="e#7953#7954#0" expanded="true" />
+            <element signature="e#25043#26206#0" expanded="true" />
+            <element signature="e#26205#26206#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -2906,10 +2908,10 @@
           <folding>
             <element signature="e#5830#6655#0" expanded="true" />
             <element signature="e#6654#6655#0" expanded="true" />
-            <element signature="e#6835#7887#0" expanded="true" />
-            <element signature="e#7886#7887#0" expanded="true" />
-            <element signature="e#24399#25518#0" expanded="true" />
-            <element signature="e#25517#25518#0" expanded="true" />
+            <element signature="e#6835#7954#0" expanded="true" />
+            <element signature="e#7953#7954#0" expanded="true" />
+            <element signature="e#25043#26206#0" expanded="true" />
+            <element signature="e#26205#26206#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -3076,15 +3078,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/rkinabhi/merchack/MapsActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="84">
-          <caret line="530" column="58" lean-forward="false" selection-start-line="530" selection-start-column="58" selection-end-line="530" selection-end-column="58" />
+        <state relative-caret-position="-49">
+          <caret line="534" column="49" lean-forward="false" selection-start-line="534" selection-start-column="49" selection-end-line="534" selection-end-column="49" />
           <folding>
             <element signature="e#5830#6655#0" expanded="true" />
             <element signature="e#6654#6655#0" expanded="true" />
-            <element signature="e#6835#7887#0" expanded="true" />
-            <element signature="e#7886#7887#0" expanded="true" />
-            <element signature="e#24399#25518#0" expanded="true" />
-            <element signature="e#25517#25518#0" expanded="true" />
+            <element signature="e#6835#7954#0" expanded="true" />
+            <element signature="e#7953#7954#0" expanded="true" />
+            <element signature="e#25043#26206#0" expanded="true" />
+            <element signature="e#26205#26206#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -185,7 +185,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         .title("Destination Location")
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.destination_icon)));
                 mMap.setOnMapClickListener(null);
-
+                carState = CarState.TravellingToPrimaryDestination;
                 getDirections(originLocation, primaryDestinationLocation);
             }
         });
@@ -408,7 +408,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> lists) {
-            if(carState != CarState.TravellingToSecondaryDestination) {
+            if(carState == CarState.TravellingToPrimaryDestination) {
                 PolylineOptions polylineOptions = null;
                 originToPrimaryDestinationPathPoints = new ArrayList<LatLng>();
 
@@ -437,7 +437,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 } else {
                     Toast.makeText(MapsActivity.this, "Direction not found", Toast.LENGTH_SHORT).show();
                 }
-            } else {
+            } else if(carState == CarState.TravellingToSecondaryDestination){
                 PolylineOptions polylineOptions = null;
                 currentLocationToSecondaryDestinationPathPoints = new ArrayList<LatLng>();
                 for (List<HashMap<String, String>> path : lists) {
@@ -519,28 +519,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         Location requestorLocation = new Location(LocationManager.GPS_PROVIDER);
                                         requestorLocation.setLatitude(location.latitude);
                                         requestorLocation.setLongitude(location.longitude);
-                                        if ((requestorLocation.distanceTo(currentLocation)) < requestRadius) {
-                                            receiveRequestDialog.setContentView(R.layout.recieve_request_dialog);
-                                            receiveRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                                            TextView requestedCharge = receiveRequestDialog.findViewById(R.id.textView);
-                                            TextView canGiveCharge = receiveRequestDialog.findViewById(R.id.textView2);
-                                            final EditText donatingCharge = receiveRequestDialog.findViewById(R.id.editText3);
-                                            canGiveCharge.setText(Double.toString(charge-batteryCapacity*0.2-distanceToDestination/mileage));
-                                            Button accept = receiveRequestDialog.findViewById(R.id.yes);
-                                            receiveRequestDialog.show();
-                                            requestedCharge.setText(requiredCharge);
-                                            accept.setOnClickListener(new View.OnClickListener() {
-                                                @Override
-                                                public void onClick(View view) {
-                                                    carState = CarState.Responding;
-                                                    requestNotificationsReference.removeValue();
-                                                    DatabaseReference responseRefernce = database.getReference("CARS/"+requestingCarName+"/response/"+name);
-                                                    responseRefernce.child("OTP").setValue("1243");
-                                                    responseRefernce.child("donatingCharge").setValue(donatingCharge.getText().toString());
-                                                    receiveRequestDialog.dismiss();
-                                                    new GeoFire(responseRefernce).setLocation("currentLocation", new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
+                                        Log.d(TAG, "onLocationResult lat: " + Double.toString(location.latitude));
+                                        Log.d(TAG, "onLocationResult lng: " + Double.toString(location.longitude));
+                                        if ((requestorLocation.distanceTo(currentLocation) < requestRadius))  {
+                                            if(charge-batteryCapacity*0.2-distanceToDestination/mileage> 0){
+                                                receiveRequestDialog.setContentView(R.layout.recieve_request_dialog);
+                                                TextView canGiveCharge = receiveRequestDialog.findViewById(R.id.textView2);
+                                                canGiveCharge.setText(Double.toString(charge-batteryCapacity*0.2-distanceToDestination/mileage));
+                                                receiveRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                                TextView requestedCharge = receiveRequestDialog.findViewById(R.id.textView);
+                                                final EditText donatingCharge = receiveRequestDialog.findViewById(R.id.editText3);
+                                                Button accept = receiveRequestDialog.findViewById(R.id.yes);
+                                                if(!MapsActivity.this.isFinishing()) {
+                                                    receiveRequestDialog.show();
                                                 }
-                                            });
+                                                requestedCharge.setText(requiredCharge);
+                                                accept.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        carState = CarState.Responding;
+                                                        requestNotificationsReference.removeValue();
+                                                        DatabaseReference responseRefernce = database.getReference("CARS/"+requestingCarName+"/response/"+name);
+                                                        responseRefernce.child("OTP").setValue("1243");
+                                                        responseRefernce.child("donatingCharge").setValue(donatingCharge.getText().toString());
+                                                        receiveRequestDialog.dismiss();
+                                                        new GeoFire(responseRefernce).setLocation("currentLocation", new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
+                                                    }
+                                                });
+                                            }
                                         }
                                     }
                                     @Override
