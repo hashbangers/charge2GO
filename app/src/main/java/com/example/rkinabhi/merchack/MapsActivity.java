@@ -28,6 +28,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -76,6 +78,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     double totalPathDistance;
     double distanceToDestination;
 
+    double requestRadius;
+
     ArrayList<LatLng> pathPoints;
     ArrayList<Double> pointDistances;
     boolean outOfCharge = false;
@@ -100,6 +104,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         requestsGeoFire = new GeoFire(requestsReference);
         sendRequestDialog = new Dialog(this);
         receiveRequestDialog = new Dialog(this);
+        requestRadius = 4000;
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -145,6 +150,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         new LatLng(destinationLocation.getLatitude(), destinationLocation.getLongitude()))
                         .title("Destination Location"));
                 mMap.setOnMapClickListener(null);
+
+                animateRequestCircle();
+
                 getDirections();
             }
         });
@@ -164,6 +172,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         database.getReference("CARS/"+name+"/Charge").setValue(charge);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pathPoints.get(0), 15));
         animateMarker();
+    }
+
+    private void animateRequestCircle(){
+        final Handler handler = new Handler();
+        //drawing a circle
+        Circle OuterCircle = mMap.addCircle(new CircleOptions()
+                .center(new LatLng(destinationLocation.getLatitude(), destinationLocation.getLongitude())).radius(requestRadius));
+        final Circle innerCircle = mMap.addCircle(new CircleOptions()
+                .center(new LatLng(destinationLocation.getLatitude(), destinationLocation.getLongitude())).radius(0));
+
+        //to remove circle
+//        innerCircle.remove();
+
+        handler.post(new Runnable() {
+
+            int i=0;
+            @Override
+            public void run() {
+                    innerCircle.setRadius(i);
+                    i++;
+                    if(i == requestRadius)
+                        i=0;
+                    handler.postDelayed(this, 1);
+            }
+        });
     }
 
     private void animateMarker() {
