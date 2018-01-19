@@ -77,6 +77,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     GeoFire requestsGeoFire;
     DatabaseReference userReference;
     DatabaseReference requestsReference;
+    DatabaseReference requestLocationReference;
 
     DatabaseReference requestNotificationsReference;
     DatabaseReference responseNotificationsReference;
@@ -122,6 +123,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         userReference = database.getReference("CARS/"+name);
         requestsReference = database.getReference("REQUESTS/"+name);
         requestNotificationsReference = database.getReference("REQUESTS");
+
         responseNotificationsReference = database.getReference("CARS/"+name+"/response");
 
         userGeofire = new GeoFire(userReference);
@@ -485,13 +487,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             try {
                 String requestingCarName = dataSnapshot.getKey();
-                String requiredCharge = dataSnapshot.child("requiredCharge").getValue(String.class);
+                if(!requestingCarName.equals(name)) {
+                    final String requiredCharge = dataSnapshot.child("requiredCharge").getValue(String.class);
+                    requestLocationReference = database.getReference("REQUESTS/"+requestingCarName);
+                    new GeoFire(requestLocationReference).getLocation("currentLocation", new LocationCallback() {
+                        @Override
+                        public void onLocationResult(String key, GeoLocation location) {
+                            try {
+                                Location requestorLocation = new Location(LocationManager.GPS_PROVIDER);
+                                requestorLocation.setLatitude(location.latitude);
+                                requestorLocation.setLongitude(location.longitude);
+                                if ((requestorLocation.distanceTo(currentLocation)) < requestRadius) {
+                                    receiveRequestDialog.setContentView(R.layout.recieve_request_dialog);
+                                    receiveRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    TextView requestedCharge = receiveRequestDialog.findViewById(R.id.textView);
+                                    receiveRequestDialog.show();
+                                    requestedCharge.setText(requiredCharge);
+                                }
+                            } catch (Exception e){}
+                        }
 
-                receiveRequestDialog.setContentView(R.layout.recieve_request_dialog);
-                receiveRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                TextView requestedCharge = receiveRequestDialog.findViewById(R.id.textView);
-                receiveRequestDialog.show();
-                requestedCharge.setText(requiredCharge);
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
+                }
             } catch (Exception e){}
         }
 
