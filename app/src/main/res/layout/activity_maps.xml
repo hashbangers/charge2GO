@@ -19,6 +19,8 @@
         android:id="@+id/request_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Request charge" />
+        android:text="Request charge"
+        android:textColor="@color/white"
+        android:background="@color/indigo"/>
 
 </RelativeLayout>

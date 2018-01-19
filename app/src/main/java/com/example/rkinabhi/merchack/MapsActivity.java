@@ -14,10 +14,13 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.firebase.geofire.GeoFire;
@@ -116,6 +119,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
         database = FirebaseDatabase.getInstance();
         name = this.getIntent().getStringExtra("Name");
+
         charge = Double.parseDouble(this.getIntent().getStringExtra("Charge"));
         mileage = Double.parseDouble(this.getIntent().getStringExtra("Mileage"));
         batteryCapacity = Double.parseDouble(this.getIntent().getStringExtra("Batterycapacity"));
@@ -140,7 +144,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         requestCharge = findViewById(R.id.request_button);
         requestCharge.setOnClickListener(new RequestChargeListener());
-
+        requestCharge.setLayoutParams(new RelativeLayout.LayoutParams(0, 0));
         requestNotificationsReference.addChildEventListener(new RequestNotificationsListener());
     }
 
@@ -248,8 +252,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     userGeofire.setLocation("currentLocation",
                             new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
 
-                    charge--;
+
                     distanceToDestination -= currentToDonorpointDistances.get(i-1);
+                    charge -= currentToDonorpointDistances.get(i-1)/(mileage*1.6);
+                    if(charge<batteryCapacity*0.2){
+                        carState = CarState.ChargeDefecient;
+                        requestCharge.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
+                    }
                     currentMarker.setPosition(currentLocationToSecondaryDestinationPathPoints.get(i));
                     currentMarker.setSnippet(Double.toString(charge));
                     database.getReference("CARS/"+name+"/Charge").setValue(charge);
@@ -283,8 +292,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     userGeofire.setLocation("currentLocation",
                             new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
 
-                    charge--;
+
                     distanceToDestination -= pointDistances.get(i-1);
+                    charge -= pointDistances.get(i-1)/(mileage*1.6);
+                    if(charge<batteryCapacity*0.2){
+                        carState = CarState.ChargeDefecient;
+                        requestCharge.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
+                    }
                     currentMarker.setPosition(originToPrimaryDestinationPathPoints.get(i));
                     currentMarker.setSnippet(Double.toString(charge));
                     database.getReference("CARS/"+name+"/Charge").setValue(charge);
@@ -501,6 +515,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     receiveRequestDialog.setContentView(R.layout.recieve_request_dialog);
                                     receiveRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                                     TextView requestedCharge = receiveRequestDialog.findViewById(R.id.textView);
+                                    TextView canGiveCharge = receiveRequestDialog.findViewById(R.id.textView2);
                                     receiveRequestDialog.show();
                                     requestedCharge.setText(requiredCharge);
                                 }
