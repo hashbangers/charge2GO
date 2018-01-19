@@ -73,7 +73,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     String name;
     double charge;
     double mileage;
+    double totalPathDistance;
+    double distanceToDestination;
+
     ArrayList<LatLng> pathPoints;
+    ArrayList<Double> pointDistances;
     boolean outOfCharge = false;
     Button requestCharge;
 
@@ -169,7 +173,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         final Interpolator interpolator = new LinearInterpolator();
 
         handler.post(new Runnable() {
-            int i=0;
+            int i=1;
 
             @Override
             public void run() {
@@ -180,11 +184,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     currentLocation.setLongitude(pathPoints.get(i).longitude);
                     userGeofire.setLocation("currentLocation",
                             new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
+
                     charge--;
+                    distanceToDestination -= pointDistances.get(i-1);
                     currentMarker.setPosition(pathPoints.get(i));
                     currentMarker.setSnippet(Double.toString(charge));
                     database.getReference("CARS/"+name+"/Charge").setValue(charge);
-                    database.getReference("CARS/"+name+"/Charge").setValue(charge);
+                    database.getReference("CARS/"+name+"/DistanceToDestination").setValue(distanceToDestination);
 
                     i++;
                     Log.d(TAG, "the thing ran for the "+i+"th time");
@@ -311,6 +317,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             if(polylineOptions!=null){
                 mMap.addPolyline(polylineOptions);
+                findTotalPathDistance();
+                Toast.makeText(MapsActivity.this, "Total travel distance is "+ totalPathDistance, Toast.LENGTH_SHORT).show();
                 startTravel();
             } else {
                 Toast.makeText(MapsActivity.this, "Direction not found" , Toast.LENGTH_SHORT).show();
@@ -339,8 +347,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             requestsReference.child("requiredCharge").setValue(requestChargeAmount.getText().toString());
             requestsGeoFire.setLocation("currentLocation", new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
             sendRequestDialog.dismiss();
+
         }
     }
+
 
     private class NotificationsListener implements ChildEventListener {
         @Override
@@ -363,6 +373,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
         @Override
         public void onCancelled(DatabaseError databaseError) {}
+    }
+
+    private void findTotalPathDistance(){
+        pointDistances = new ArrayList<Double>();
+        for(int i=0; i<pathPoints.size()-1; i++){
+
+            Location first = new Location(LocationManager.GPS_PROVIDER);
+            first.setLatitude(pathPoints.get(i).latitude);
+            first.setLongitude(pathPoints.get(i).longitude);
+
+            Location second = new Location(LocationManager.GPS_PROVIDER);
+            second.setLatitude(pathPoints.get(i+1).latitude);
+            second.setLongitude(pathPoints.get(i+1).longitude);
+            double tempDistance = first.distanceTo(second)/1000;
+            pointDistances.add(tempDistance);
+            totalPathDistance+=tempDistance;
+        }
+        distanceToDestination = totalPathDistance;
     }
 
 
