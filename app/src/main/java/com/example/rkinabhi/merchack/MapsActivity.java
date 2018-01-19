@@ -46,6 +46,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -306,7 +307,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     i++;
                     Log.d(TAG, "the thing ran for the "+i+"th time");
-                    if(carState != CarState.ChargeDefecient) {
+                    if(carState != CarState.ChargeDefecient && carState != CarState.Responding) {
                         handler.postDelayed(this, 160);
                     }
                 }
@@ -490,7 +491,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             sendRequestDialog.dismiss();
             carState = CarState.WaitingForResponse;
             animateRequestCircle();
-            //add child event listener
             responseNotificationsReference.addChildEventListener(new ResponseNotificationsListener());
         }
     }
@@ -500,7 +500,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             try {
-                String requestingCarName = dataSnapshot.getKey();
+                final String requestingCarName = dataSnapshot.getKey();
                 if(!requestingCarName.equals(name)) {
                     final String requiredCharge = dataSnapshot.child("requiredCharge").getValue(String.class);
                     requestLocationReference = database.getReference("REQUESTS/"+requestingCarName);
@@ -516,10 +516,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     receiveRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                                     TextView requestedCharge = receiveRequestDialog.findViewById(R.id.textView);
                                     TextView canGiveCharge = receiveRequestDialog.findViewById(R.id.textView2);
+                                    final EditText donatingCharge = receiveRequestDialog.findViewById(R.id.editText3);
+                                    canGiveCharge.setText(Double.toString(charge-batteryCapacity*0.2-distanceToDestination/mileage));
+                                    Button accept = receiveRequestDialog.findViewById(R.id.yes);
+                                    accept.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            carState = CarState.Responding;
+                                            requestNotificationsReference.removeValue();
+                                            DatabaseReference responseRefernce = database.getReference("CARS/"+requestingCarName+"/response/"+name);
+                                            responseRefernce.child("OTP").setValue("1243");
+                                            responseRefernce.child("donatingCharge").setValue(donatingCharge.getText().toString());
+                                            receiveRequestDialog.dismiss();
+                                            new GeoFire(responseRefernce).setLocation("currentLocation", new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
+                                        }
+                                    });
                                     receiveRequestDialog.show();
                                     requestedCharge.setText(requiredCharge);
                                 }
-                            } catch (Exception e){}
+                            } catch (Exception e){
+                                e.printStackTrace();
+                            }
                         }
 
                         @Override
@@ -542,37 +559,43 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public void onCancelled(DatabaseError databaseError) {}
     }
 
+
+
+
     private class ResponseNotificationsListener implements ChildEventListener{
 
         @Override
-        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-            Toast.makeText(MapsActivity.this, dataSnapshot.getKey()
-                    +" , "+ dataSnapshot.child("OTP").getValue().toString()
-                    +" , "+ dataSnapshot.child("donatingCharge").getValue().toString(), Toast.LENGTH_SHORT).show();
-            DatabaseReference responseReference = database.getReference("CARS/"+name+"/response/"+dataSnapshot.getKey());
-            new GeoFire(responseReference).getLocation("currentLocation", new LocationCallback() {
-                @Override
-                public void onLocationResult(String key, GeoLocation location) {
-                    donorMarker = mMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(location.latitude, location.longitude))
-                            .title("Donor Car"));
-                    secondaryDestinationLocation = new Location(LocationManager.GPS_PROVIDER);
-                    secondaryDestinationLocation.setLatitude(location.latitude);
-                    secondaryDestinationLocation.setLongitude(location.longitude);
+        public void onChildAdded(final DataSnapshot dataSnapshot, String s) {
+            try {
+                final DatabaseReference responseReference = database.getReference("CARS/" + name + "/response/" + dataSnapshot.getKey());
+                new GeoFire(responseReference).getLocation("currentLocation", new LocationCallback() {
+                    @Override
+                    public void onLocationResult(String key, GeoLocation location) {
+//                        Toast.makeText(MapsActivity.this, dataSnapshot.getKey()
+//                                + " , " + responseReference.child("OTP").value.toString()
+//                                + " , " + dataSnapshot.child("donatingCharge").getValue().toString(), Toast.LENGTH_SHORT).show();
+                        donorMarker = mMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(location.latitude, location.longitude))
+                                .title("Donor Car"));
+                        secondaryDestinationLocation = new Location(LocationManager.GPS_PROVIDER);
+                        secondaryDestinationLocation.setLatitude(location.latitude);
+                        secondaryDestinationLocation.setLongitude(location.longitude);
 
-                    innerCircle.remove();
-                    outerCircle.remove();
-                    carState = CarState.TravellingToSecondaryDestination;
-                    getDirections(currentLocation, secondaryDestinationLocation);
+                        innerCircle.remove();
+                        outerCircle.remove();
+                        carState = CarState.TravellingToSecondaryDestination;
+                        getDirections(currentLocation, secondaryDestinationLocation);
 
-                }
+                    }
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
 
-                }
-            });
-
+                    }
+                });
+            }catch (Exception e){
+                e.printStackTrace();
+            }
 
         }
 
