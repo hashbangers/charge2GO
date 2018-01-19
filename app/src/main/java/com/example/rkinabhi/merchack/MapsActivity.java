@@ -527,6 +527,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                             final EditText donatingCharge = receiveRequestDialog.findViewById(R.id.editText3);
                                             canGiveCharge.setText(Double.toString(charge-batteryCapacity*0.2-distanceToDestination/mileage));
                                             Button accept = receiveRequestDialog.findViewById(R.id.yes);
+                                            receiveRequestDialog.show();
+                                            requestedCharge.setText(requiredCharge);
                                             accept.setOnClickListener(new View.OnClickListener() {
                                                 @Override
                                                 public void onClick(View view) {
@@ -539,8 +541,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                                     new GeoFire(responseRefernce).setLocation("currentLocation", new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
                                                 }
                                             });
-                                            receiveRequestDialog.show();
-                                            requestedCharge.setText(requiredCharge);
                                         }
                                     }
                                     @Override
@@ -578,63 +578,70 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private class ResponseNotificationsListener implements ChildEventListener{
 
         @Override
-        public void onChildAdded(final DataSnapshot dataSnapshot, String s) {
-            try {
-                final DatabaseReference responseReference = database.getReference("CARS/" + name + "/response/" + dataSnapshot.getKey());
-                new GeoFire(responseReference).getLocation("currentLocation", new LocationCallback() {
+        public void onChildAdded(final DataSnapshot dataSnapshotSuper, String s) {
+                String respondingCar = dataSnapshotSuper.getKey();
+                Log.d(TAG, "respondingCarIs: "+respondingCar);
+                DatabaseReference donatingChargeTempRef = dataSnapshotSuper.child("donatingCharge").getRef();
+                donatingChargeTempRef.addValueEventListener(new ValueEventListener() {
                     @Override
-                    public void onLocationResult(String key, GeoLocation location) {
-                        try {
-//                        Toast.makeText(MapsActivity.this, dataSnapshot.getKey()
-//                                + " , " + responseReference.child("OTP").value.toString()
-//                                + " , " + dataSnapshot.child("donatingCharge").getValue().toString(), Toast.LENGTH_SHORT).show();
-                            donorMarker = mMap.addMarker(new MarkerOptions()
-                                    .position(new LatLng(location.latitude, location.longitude))
-                                    .title("Donor Car"));
-                            secondaryDestinationLocation = new Location(LocationManager.GPS_PROVIDER);
-                            secondaryDestinationLocation.setLatitude(location.latitude);
-                            secondaryDestinationLocation.setLongitude(location.longitude);
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String donatingCharge = dataSnapshot.getValue(String.class);
+                        Log.d(TAG, "donatingChargeIs :"+donatingCharge);
+                        DatabaseReference otpRef = dataSnapshotSuper.child("OTP").getRef();
+                        otpRef.addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                String otp = dataSnapshot.getValue(String.class);
+                                Log.d(TAG, "otp is: "+otp);
+                                DatabaseReference curLocTemp = dataSnapshotSuper.child("currentLocation").getRef();
+                                curLocTemp.addChildEventListener(new ChildEventListener() {
+                                    @Override
+                                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                                        new GeoFire(dataSnapshotSuper.getRef()).getLocation("currentLocation", new LocationCallback() {
+                                            @Override
+                                            public void onLocationResult(String key, GeoLocation location) {
+                                                donorMarker = mMap.addMarker(new MarkerOptions()
+                                                .position(new LatLng(location.latitude, location.longitude))
+                                                .title("Donor Car"));
+                                                secondaryDestinationLocation = new Location(LocationManager.GPS_PROVIDER);
+                                                secondaryDestinationLocation.setLatitude(location.latitude);
+                                                secondaryDestinationLocation.setLongitude(location.longitude);
 
-                            innerCircle.remove();
-                            outerCircle.remove();
-                            carState = CarState.TravellingToSecondaryDestination;
-                            getDirections(currentLocation, secondaryDestinationLocation);
-                        }catch (Exception e){
-                            e.printStackTrace();
-                        }
-
+                                                innerCircle.remove();
+                                                outerCircle.remove();
+                                                carState = CarState.TravellingToSecondaryDestination;
+                                                getDirections(currentLocation, secondaryDestinationLocation);
+                                            }
+                                            @Override
+                                            public void onCancelled(DatabaseError databaseError) {}
+                                        });
+                                    }
+                                    @Override
+                                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+                                    @Override
+                                    public void onChildRemoved(DataSnapshot dataSnapshot) { }
+                                    @Override
+                                    public void onChildMoved(DataSnapshot dataSnapshot, String s) { }
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) { }
+                                });
+                            }
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {}
+                        });
                     }
-
                     @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
+                    public void onCancelled(DatabaseError databaseError) {}
                 });
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-
         }
-
         @Override
-        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-        }
-
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
         @Override
-        public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-        }
-
+        public void onChildRemoved(DataSnapshot dataSnapshot) {}
         @Override
-        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-        }
-
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
         @Override
-        public void onCancelled(DatabaseError databaseError) {
-
-        }
+        public void onCancelled(DatabaseError databaseError) {}
     }
 
     private void findTotalPathDistance(){
