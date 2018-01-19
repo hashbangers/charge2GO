@@ -22,12 +22,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.LocationCallback;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -61,29 +63,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private Location originLocation;
-    private Location destinationLocation;
+    private Location primaryDestinationLocation;
     private Location currentLocation;
+    private Location secondaryDestinationLocation;
+
     Marker originMarker;
     Marker destinationMarker;
     Marker currentMarker;
+    Marker donorMarker;
+
     FirebaseDatabase database;
     GeoFire userGeofire;
     GeoFire requestsGeoFire;
     DatabaseReference userReference;
     DatabaseReference requestsReference;
-    DatabaseReference notificationsReference;
+
+    DatabaseReference requestNotificationsReference;
+    DatabaseReference responseNotificationsReference;
+
     String name;
     double charge;
     double mileage;
+    double batteryCapacity;
+
     double totalPathDistance;
+    double distanceToDonor;
     double distanceToDestination;
 
     double requestRadius;
 
-    ArrayList<LatLng> pathPoints;
+    ArrayList<LatLng> originToPrimaryDestinationPathPoints;
+    ArrayList<LatLng> currentLocationToSecondaryDestinationPathPoints;
+
     ArrayList<Double> pointDistances;
+    ArrayList<Double> currentToDonorpointDistances;
     boolean outOfCharge = false;
     Button requestCharge;
+
+    Circle outerCircle;
+    Circle innerCircle;
+
+    CarState carState;
 
     Dialog sendRequestDialog;
     Dialog receiveRequestDialog;
@@ -97,14 +117,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         name = this.getIntent().getStringExtra("Name");
         charge = Double.parseDouble(this.getIntent().getStringExtra("Charge"));
         mileage = Double.parseDouble(this.getIntent().getStringExtra("Mileage"));
+        batteryCapacity = Double.parseDouble(this.getIntent().getStringExtra("Batterycapacity"));
+
         userReference = database.getReference("CARS/"+name);
         requestsReference = database.getReference("REQUESTS/"+name);
-        notificationsReference = database.getReference("CARS/"+name+"/notifications");
+        requestNotificationsReference = database.getReference("REQUESTS");
+        responseNotificationsReference = database.getReference("CARS/"+name+"/response");
+
         userGeofire = new GeoFire(userReference);
         requestsGeoFire = new GeoFire(requestsReference);
         sendRequestDialog = new Dialog(this);
         receiveRequestDialog = new Dialog(this);
-        requestRadius = 4000;
+        requestRadius = 3218;
+        carState = CarState.AtOrigin;
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -114,8 +139,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         requestCharge = findViewById(R.id.request_button);
         requestCharge.setOnClickListener(new RequestChargeListener());
 
-        notificationsReference.addChildEventListener(new NotificationsListener());
-
+        requestNotificationsReference.addChildEventListener(new RequestNotificationsListener());
     }
 
     @Override
@@ -128,7 +152,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onComplete(@NonNull Task<Location> task) {
                 originLocation = task.getResult();
                 userGeofire.setLocation("originLocation",new GeoLocation(originLocation.getLatitude(), originLocation.getLongitude()));
-                originMarker = googleMap.addMarker(new MarkerOptions().position(new LatLng(originLocation.getLatitude(), originLocation.getLongitude())).title("Origin Location"));
+                originMarker = googleMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(originLocation.getLatitude(), originLocation.getLongitude()))
+                        .title("Origin Location").icon(BitmapDescriptorFactory.fromResource(R.drawable.origin_icon)));
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(originLocation.getLatitude(), originLocation.getLongitude()), 15));
                 getDestinationLocation();
             }
@@ -141,49 +167,54 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapClick(LatLng latLng) {
 
-                destinationLocation = new Location(LocationManager.GPS_PROVIDER);
-                destinationLocation.setLatitude(latLng.latitude);
-                destinationLocation.setLongitude(latLng.longitude);
-                userGeofire.setLocation("destinationLocation",
-                        new GeoLocation(destinationLocation.getLatitude(), destinationLocation.getLongitude()));
+                primaryDestinationLocation = new Location(LocationManager.GPS_PROVIDER);
+                primaryDestinationLocation.setLatitude(latLng.latitude);
+                primaryDestinationLocation.setLongitude(latLng.longitude);
+                userGeofire.setLocation("primaryDestinationLocation",
+                        new GeoLocation(primaryDestinationLocation.getLatitude(), primaryDestinationLocation.getLongitude()));
+
                 destinationMarker = mMap.addMarker(new MarkerOptions().position(
-                        new LatLng(destinationLocation.getLatitude(), destinationLocation.getLongitude()))
-                        .title("Destination Location"));
+                        new LatLng(primaryDestinationLocation.getLatitude(), primaryDestinationLocation.getLongitude()))
+                        .title("Destination Location")
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.destination_icon)));
                 mMap.setOnMapClickListener(null);
 
-                animateRequestCircle();
-
-                getDirections();
+                getDirections(originLocation, primaryDestinationLocation);
             }
         });
     }
 
-    private void startTravel() {
+    private void travelToPrimaryLocation() {
+        carState = CarState.TravellingToPrimaryDestination;
         currentLocation = new Location(LocationManager.GPS_PROVIDER);
-        currentLocation.setLatitude(pathPoints.get(0).latitude);
-        currentLocation.setLongitude(pathPoints.get(0).longitude);
+        currentLocation.setLatitude(originToPrimaryDestinationPathPoints.get(0).latitude);
+        currentLocation.setLongitude(originToPrimaryDestinationPathPoints.get(0).longitude);
         userGeofire.setLocation("currentLocation",
                 new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
         currentMarker = mMap.addMarker(new MarkerOptions()
-            .position(pathPoints.get(0))
-            .title("Current Location"));
+            .position(originToPrimaryDestinationPathPoints.get(0))
+            .title("Current Location")
+            .icon(BitmapDescriptorFactory.fromResource(R.drawable.car_icon)));
 
         currentMarker.setSnippet(Double.toString(charge));
         database.getReference("CARS/"+name+"/Charge").setValue(charge);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pathPoints.get(0), 15));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(originToPrimaryDestinationPathPoints.get(0), 15));
         animateMarker();
+    }
+
+    private void travelToSecondaryLocation(){
+        carState = CarState.TravellingToSecondaryDestination;
+        animateMarkerTwo();
+
     }
 
     private void animateRequestCircle(){
         final Handler handler = new Handler();
         //drawing a circle
-        Circle OuterCircle = mMap.addCircle(new CircleOptions()
-                .center(new LatLng(destinationLocation.getLatitude(), destinationLocation.getLongitude())).radius(requestRadius));
-        final Circle innerCircle = mMap.addCircle(new CircleOptions()
-                .center(new LatLng(destinationLocation.getLatitude(), destinationLocation.getLongitude())).radius(0));
-
-        //to remove circle
-//        innerCircle.remove();
+        outerCircle = mMap.addCircle(new CircleOptions()
+                .center(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())).radius(requestRadius));
+        innerCircle = mMap.addCircle(new CircleOptions()
+                .center(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())).radius(0));
 
         handler.post(new Runnable() {
 
@@ -191,43 +222,75 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void run() {
                     innerCircle.setRadius(i);
-                    i++;
-                    if(i == requestRadius)
+                    i+=4;
+                    if(i >= requestRadius)
                         i=0;
-                    handler.postDelayed(this, 1);
+                    if(carState == CarState.WaitingForResponse)
+                        handler.postDelayed(this, 1);
             }
         });
     }
 
-    private void animateMarker() {
+    private void animateMarkerTwo() {
+
         final Handler handler = new Handler();
-        final long start = SystemClock.uptimeMillis();
-        final long duration = 30000;
-        final Interpolator interpolator = new LinearInterpolator();
 
         handler.post(new Runnable() {
             int i=1;
 
             @Override
             public void run() {
-                long elapsed = SystemClock.uptimeMillis() - start;
-                float t = interpolator.getInterpolation((float) elapsed / duration);
-                if(i<pathPoints.size()){
-                    currentLocation.setLatitude(pathPoints.get(i).latitude);
-                    currentLocation.setLongitude(pathPoints.get(i).longitude);
+                if(i< currentLocationToSecondaryDestinationPathPoints.size()){
+                    currentLocation.setLatitude(currentLocationToSecondaryDestinationPathPoints.get(i).latitude);
+                    currentLocation.setLongitude(currentLocationToSecondaryDestinationPathPoints.get(i).longitude);
+                    userGeofire.setLocation("currentLocation",
+                            new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
+
+                    charge--;
+                    distanceToDestination -= currentToDonorpointDistances.get(i-1);
+                    currentMarker.setPosition(currentLocationToSecondaryDestinationPathPoints.get(i));
+                    currentMarker.setSnippet(Double.toString(charge));
+                    database.getReference("CARS/"+name+"/Charge").setValue(charge);
+                    database.getReference("CARS/"+name+"/DistanceToDestination").setValue(distanceToDestination);
+
+                    i++;
+                    Log.d(TAG, "car hasnt reached donor yet");
+                    if(currentLocation.equals(secondaryDestinationLocation)) {
+                        carState = CarState.Charging;
+                        Log.d(TAG, "run: CHARGING");
+                    }
+                    if(carState != CarState.Charging) {
+                        handler.postDelayed(this, 160);
+                    }
+                }
+            }
+        });
+    }
+    private void animateMarker() {
+
+        final Handler handler = new Handler();
+
+        handler.post(new Runnable() {
+            int i=1;
+
+            @Override
+            public void run() {
+                if(i< originToPrimaryDestinationPathPoints.size()){
+                    currentLocation.setLatitude(originToPrimaryDestinationPathPoints.get(i).latitude);
+                    currentLocation.setLongitude(originToPrimaryDestinationPathPoints.get(i).longitude);
                     userGeofire.setLocation("currentLocation",
                             new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
 
                     charge--;
                     distanceToDestination -= pointDistances.get(i-1);
-                    currentMarker.setPosition(pathPoints.get(i));
+                    currentMarker.setPosition(originToPrimaryDestinationPathPoints.get(i));
                     currentMarker.setSnippet(Double.toString(charge));
                     database.getReference("CARS/"+name+"/Charge").setValue(charge);
                     database.getReference("CARS/"+name+"/DistanceToDestination").setValue(distanceToDestination);
 
                     i++;
                     Log.d(TAG, "the thing ran for the "+i+"th time");
-                    if(!outOfCharge) {
+                    if(carState != CarState.ChargeDefecient) {
                         handler.postDelayed(this, 160);
                     }
                 }
@@ -235,10 +298,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    void getDirections(){
+    void getDirections(Location A, Location B){
         String url =  getRequestUrl(
-                new LatLng(originLocation.getLatitude(), originLocation.getLongitude()),
-                new LatLng(destinationLocation.getLatitude(), destinationLocation.getLongitude()));
+                new LatLng(A.getLatitude(), A.getLongitude()),
+                new LatLng(B.getLatitude(), B.getLongitude()));
 
         TaskRequestDirections taskRequestDirections = new TaskRequestDirections();
         taskRequestDirections.execute(url);
@@ -328,35 +391,64 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> lists) {
-            PolylineOptions polylineOptions = null;
-            pathPoints = new ArrayList<LatLng>();
+            if(carState != CarState.TravellingToSecondaryDestination) {
+                PolylineOptions polylineOptions = null;
+                originToPrimaryDestinationPathPoints = new ArrayList<LatLng>();
 
-            for(List<HashMap<String, String>> path : lists){
-                ArrayList points = new ArrayList();
-                polylineOptions = new PolylineOptions();
+                for (List<HashMap<String, String>> path : lists) {
+                    ArrayList points = new ArrayList();
+                    polylineOptions = new PolylineOptions();
 
-                for(HashMap<String, String> point : path){
-                    double lat = Double.parseDouble(point.get("lat"));
-                    double lon = Double.parseDouble(point.get("lon"));
-                    points.add(new LatLng(lat, lon));
-                    pathPoints.add(new LatLng(lat, lon));
+                    for (HashMap<String, String> point : path) {
+                        double lat = Double.parseDouble(point.get("lat"));
+                        double lon = Double.parseDouble(point.get("lon"));
+                        points.add(new LatLng(lat, lon));
+                        originToPrimaryDestinationPathPoints.add(new LatLng(lat, lon));
+                    }
+
+                    polylineOptions.addAll(points);
+                    polylineOptions.width(15);
+                    polylineOptions.color(Color.BLUE);
+                    polylineOptions.geodesic(true);
                 }
 
-                polylineOptions.addAll(points);
-                polylineOptions.width(15);
-                polylineOptions.color(Color.BLUE);
-                polylineOptions.geodesic(true);
-            }
-
-            if(polylineOptions!=null){
-                mMap.addPolyline(polylineOptions);
-                findTotalPathDistance();
-                Toast.makeText(MapsActivity.this, "Total travel distance is "+ totalPathDistance, Toast.LENGTH_SHORT).show();
-                startTravel();
+                if (polylineOptions != null) {
+                    mMap.addPolyline(polylineOptions);
+                    findTotalPathDistance();
+                    Toast.makeText(MapsActivity.this, "Total travel distance is " + totalPathDistance, Toast.LENGTH_SHORT).show();
+                    travelToPrimaryLocation();
+                } else {
+                    Toast.makeText(MapsActivity.this, "Direction not found", Toast.LENGTH_SHORT).show();
+                }
             } else {
-                Toast.makeText(MapsActivity.this, "Direction not found" , Toast.LENGTH_SHORT).show();
-            }
+                PolylineOptions polylineOptions = null;
+                currentLocationToSecondaryDestinationPathPoints = new ArrayList<LatLng>();
+                for (List<HashMap<String, String>> path : lists) {
+                    ArrayList points = new ArrayList();
+                    polylineOptions = new PolylineOptions();
 
+                    for (HashMap<String, String> point : path) {
+                        double lat = Double.parseDouble(point.get("lat"));
+                        double lon = Double.parseDouble(point.get("lon"));
+                        points.add(new LatLng(lat, lon));
+                        currentLocationToSecondaryDestinationPathPoints.add(new LatLng(lat, lon));
+                    }
+
+                    polylineOptions.addAll(points);
+                    polylineOptions.width(15);
+                    polylineOptions.color(Color.RED);
+                    polylineOptions.geodesic(true);
+                }
+
+                if (polylineOptions != null) {
+                    mMap.addPolyline(polylineOptions);
+                    findCurrentToDonorPathDistance();
+                    Toast.makeText(MapsActivity.this, "Total travel distance is " + totalPathDistance, Toast.LENGTH_SHORT).show();
+                    travelToSecondaryLocation();
+                } else {
+                    Toast.makeText(MapsActivity.this, "Direction not found", Toast.LENGTH_SHORT).show();
+                }
+            }
         }
     }
 
@@ -369,7 +461,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             sendRequest.setOnClickListener(new SendRequest());
             sendRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             sendRequestDialog.show();
-            outOfCharge = true;
+            carState = CarState.ChargeDefecient;
         }
     }
 
@@ -380,22 +472,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             requestsReference.child("requiredCharge").setValue(requestChargeAmount.getText().toString());
             requestsGeoFire.setLocation("currentLocation", new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
             sendRequestDialog.dismiss();
-
+            carState = CarState.WaitingForResponse;
+            animateRequestCircle();
+            //add child event listener
+            responseNotificationsReference.addChildEventListener(new ResponseNotificationsListener());
         }
     }
 
 
-    private class NotificationsListener implements ChildEventListener {
+    private class RequestNotificationsListener implements ChildEventListener {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-            String requestingCarName = dataSnapshot.getKey();
-            double requiredCharge = dataSnapshot.child("requiredCharge").getValue(double.class);
+            try {
+                String requestingCarName = dataSnapshot.getKey();
+                String requiredCharge = dataSnapshot.child("requiredCharge").getValue(String.class);
 
-            receiveRequestDialog.setContentView(R.layout.recieve_request_dialog);
-            receiveRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            TextView requestedCharge = receiveRequestDialog.findViewById(R.id.textView);
-            receiveRequestDialog.show();
-            requestedCharge.setText(Double.toString(requiredCharge));
+                receiveRequestDialog.setContentView(R.layout.recieve_request_dialog);
+                receiveRequestDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                TextView requestedCharge = receiveRequestDialog.findViewById(R.id.textView);
+                receiveRequestDialog.show();
+                requestedCharge.setText(requiredCharge);
+            } catch (Exception e){}
         }
 
         @Override
@@ -408,22 +505,95 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public void onCancelled(DatabaseError databaseError) {}
     }
 
+    private class ResponseNotificationsListener implements ChildEventListener{
+
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            Toast.makeText(MapsActivity.this, dataSnapshot.getKey()
+                    +" , "+ dataSnapshot.child("OTP").getValue().toString()
+                    +" , "+ dataSnapshot.child("donatingCharge").getValue().toString(), Toast.LENGTH_SHORT).show();
+            DatabaseReference responseReference = database.getReference("CARS/"+name+"/response/"+dataSnapshot.getKey());
+            new GeoFire(responseReference).getLocation("currentLocation", new LocationCallback() {
+                @Override
+                public void onLocationResult(String key, GeoLocation location) {
+                    donorMarker = mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(location.latitude, location.longitude))
+                            .title("Donor Car"));
+                    secondaryDestinationLocation = new Location(LocationManager.GPS_PROVIDER);
+                    secondaryDestinationLocation.setLatitude(location.latitude);
+                    secondaryDestinationLocation.setLongitude(location.longitude);
+
+                    innerCircle.remove();
+                    outerCircle.remove();
+                    carState = CarState.TravellingToSecondaryDestination;
+                    getDirections(currentLocation, secondaryDestinationLocation);
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
+
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    }
+
     private void findTotalPathDistance(){
         pointDistances = new ArrayList<Double>();
-        for(int i=0; i<pathPoints.size()-1; i++){
+        for(int i = 0; i< originToPrimaryDestinationPathPoints.size()-1; i++){
 
             Location first = new Location(LocationManager.GPS_PROVIDER);
-            first.setLatitude(pathPoints.get(i).latitude);
-            first.setLongitude(pathPoints.get(i).longitude);
+            first.setLatitude(originToPrimaryDestinationPathPoints.get(i).latitude);
+            first.setLongitude(originToPrimaryDestinationPathPoints.get(i).longitude);
 
             Location second = new Location(LocationManager.GPS_PROVIDER);
-            second.setLatitude(pathPoints.get(i+1).latitude);
-            second.setLongitude(pathPoints.get(i+1).longitude);
+            second.setLatitude(originToPrimaryDestinationPathPoints.get(i+1).latitude);
+            second.setLongitude(originToPrimaryDestinationPathPoints.get(i+1).longitude);
             double tempDistance = first.distanceTo(second)/1000;
             pointDistances.add(tempDistance);
             totalPathDistance+=tempDistance;
         }
         distanceToDestination = totalPathDistance;
+    }
+
+    private void findCurrentToDonorPathDistance(){
+        currentToDonorpointDistances = new ArrayList<Double>();
+        for(int i = 0; i< currentLocationToSecondaryDestinationPathPoints.size()-1; i++){
+
+            Location first = new Location(LocationManager.GPS_PROVIDER);
+            first.setLatitude(currentLocationToSecondaryDestinationPathPoints.get(i).latitude);
+            first.setLongitude(currentLocationToSecondaryDestinationPathPoints.get(i).longitude);
+
+            Location second = new Location(LocationManager.GPS_PROVIDER);
+            second.setLatitude(currentLocationToSecondaryDestinationPathPoints.get(i+1).latitude);
+            second.setLongitude(currentLocationToSecondaryDestinationPathPoints.get(i+1).longitude);
+            double tempDistance = first.distanceTo(second)/1000;
+            currentToDonorpointDistances.add(tempDistance);
+            distanceToDonor+=tempDistance;
+        }
+        distanceToDestination = distanceToDonor;
     }
 
 
