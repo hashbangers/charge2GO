@@ -2,25 +2,23 @@ package com.example.rkinabhi.merchack;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -251,6 +249,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.setOnMapClickListener(null);
                 carState = CarState.TravellingToPrimaryDestination;
                 getDirections(originLocation, primaryDestinationLocation);
+
             }
         });
     }
@@ -567,7 +566,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if(!requestingCarName.equals(name)) {
                 DatabaseReference reqChargeTemp = database.getReference("REQUESTS/"+requestingCarName+"/requiredCharge");
                 Log.d(TAG, "onChildAdded: "+"sup");
-
                 reqChargeTemp.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -597,7 +595,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                                 if(!MapsActivity.this.isFinishing()) {
                                                     receiveRequestDialog.show();
                                                 }
-                                                requestedCharge.setText(requiredCharge);
+                                                requestedCharge.setText(requestingCarName + " is requesting for "+ requiredCharge + "Kwh");
+                                                donatingCharge.addTextChangedListener(new TextWatcher() {
+                                                    @Override
+                                                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+                                                    @Override
+                                                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                                                        TextView tv = receiveRequestDialog.findViewById(R.id.textView3);try {
+                                                            tv.setText(Double.toString(Double.parseDouble(charSequence.toString()) * 5));
+                                                        } catch (Exception e){}
+                                                    }
+                                                    @Override
+                                                    public void afterTextChanged(Editable editable) {}
+                                                });
+
                                                 accept.setOnClickListener(new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View view) {
@@ -643,8 +654,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-
-
     private class ResponseNotificationsListener implements ChildEventListener{
 
         @Override
@@ -663,6 +672,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 String otp = dataSnapshot.getValue(String.class);
                                 Log.d(TAG, "otp is: "+otp);
+                                Toast.makeText(MapsActivity.this, "USE OTP -1234- TO CHARGE YOUR CAR", Toast.LENGTH_SHORT).show();
                                 DatabaseReference curLocTemp = dataSnapshotSuper.child("currentLocation").getRef();
                                 curLocTemp.addChildEventListener(new ChildEventListener() {
                                     @Override
@@ -682,6 +692,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                                 outerCircle.remove();
                                                 carState = CarState.TravellingToSecondaryDestination;
                                                 getDirections(currentLocation, secondaryDestinationLocation);
+                                                //
+                                                //
+                                                //EDITED HERE
+                                                dataSnapshotSuper.getRef().removeValue();
                                             }
                                             @Override
                                             public void onCancelled(DatabaseError databaseError) {}
@@ -731,6 +745,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             totalPathDistance+=tempDistance;
         }
         distanceToDestination = totalPathDistance;
+
+        Frag1 newFragment = new Frag1();
+        FragmentTransaction trans = getFragmentManager().beginTransaction();
+        trans.replace(R.id.fragHere, newFragment);
+        trans.addToBackStack(null);
+        trans.commit();
+
     }
 
     private void findCurrentToDonorPathDistance(){
