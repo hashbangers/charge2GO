@@ -20,17 +20,17 @@
         android:hint="Charge"
         android:inputType="numberDecimal" />
 
-    <EditText
-        android:id="@+id/Mileage"
-        android:layout_below="@+id/Charge"
+    <Spinner
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint = "Mileage"
-        android:inputType="numberDecimal" />
+        android:id="@+id/car_models"
+        android:layout_below="@+id/Charge">
+
+    </Spinner>
 
     <Button
         android:id="@+id/go_to_map"
-        android:layout_below="@+id/Mileage"
+        android:layout_below="@+id/car_models"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Go to Map"/>
