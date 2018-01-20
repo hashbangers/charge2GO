@@ -592,6 +592,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                                 TextView requestedCharge = receiveRequestDialog.findViewById(R.id.textView);
                                                 final EditText donatingCharge = receiveRequestDialog.findViewById(R.id.editText3);
                                                 Button accept = receiveRequestDialog.findViewById(R.id.yes);
+                                                Button ignore = receiveRequestDialog.findViewById(R.id.button2);
                                                 if(!MapsActivity.this.isFinishing()) {
                                                     receiveRequestDialog.show();
                                                 }
@@ -619,6 +620,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                                         responseRefernce.child("donatingCharge").setValue(donatingCharge.getText().toString());
                                                         receiveRequestDialog.dismiss();
                                                         new GeoFire(responseRefernce).setLocation("currentLocation", new GeoLocation(currentLocation.getLatitude(), currentLocation.getLongitude()));
+                                                    }
+                                                });
+
+                                                ignore.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        receiveRequestDialog.dismiss();
                                                     }
                                                 });
                                             }
