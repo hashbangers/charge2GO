@@ -3,6 +3,7 @@ package com.example.rkinabhi.merchack;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
@@ -139,7 +140,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         carState = CarState.AtOrigin;
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        final SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
@@ -147,6 +148,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         requestCharge.setOnClickListener(new RequestChargeListener());
         requestCharge.setLayoutParams(new RelativeLayout.LayoutParams(0, 0));
         requestNotificationsReference.addChildEventListener(new RequestNotificationsListener());
+
     }
 
     @Override
@@ -165,6 +167,68 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(originLocation.getLatitude(), originLocation.getLongitude()), 15));
                 getDestinationLocation();
             }
+        });
+
+        database.getReference("CHARGINGSTATIONS").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(final DataSnapshot dataSnapshot, String s) {
+                new GeoFire(dataSnapshot.getRef()).getLocation("Location", new LocationCallback() {
+                    @Override
+                    public void onLocationResult(String key, GeoLocation location) {
+                        String Occupied = Boolean.toString(dataSnapshot.child("Occupied").getValue(boolean.class));
+                        if(Occupied.equalsIgnoreCase("false")) {
+                            mMap.addMarker(new MarkerOptions()
+                                    .position(new LatLng(location.latitude, location.longitude))
+                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.b_cs)));
+                        } else {
+                            mMap.addMarker(new MarkerOptions()
+                                    .position(new LatLng(location.latitude, location.longitude))
+                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.r_cs)));
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {}
+                });
+            }
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+
+        database.getReference("TRUCKS").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(final DataSnapshot dataSnapshot, String s) {
+                new GeoFire(dataSnapshot.getRef()).getLocation("Location", new LocationCallback() {
+                    @Override
+                    public void onLocationResult(String key, GeoLocation location) {
+                        String Occupied = Boolean.toString(dataSnapshot.child("Occupied").getValue(boolean.class));
+                        if(Occupied.equalsIgnoreCase("false")) {
+                            mMap.addMarker(new MarkerOptions()
+                                    .position(new LatLng(location.latitude, location.longitude))
+                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.b_t)));
+                        } else {
+                            mMap.addMarker(new MarkerOptions()
+                                    .position(new LatLng(location.latitude, location.longitude))
+                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.r_t)));
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {}
+                });
+            }
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
         });
     }
 
@@ -201,7 +265,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         currentMarker = mMap.addMarker(new MarkerOptions()
             .position(originToPrimaryDestinationPathPoints.get(0))
             .title("Current Location")
-            .icon(BitmapDescriptorFactory.fromResource(R.drawable.car_icon)));
+            .icon(BitmapDescriptorFactory.fromResource(R.drawable.g_car)));
 
         currentMarker.setSnippet(Double.toString(charge));
         database.getReference("CARS/"+name+"/Charge").setValue(charge);
@@ -504,7 +568,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 DatabaseReference reqChargeTemp = database.getReference("REQUESTS/"+requestingCarName+"/requiredCharge");
                 Log.d(TAG, "onChildAdded: "+"sup");
 
-                reqChargeTemp.addValueEventListener(new ValueEventListener() {
+                reqChargeTemp.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         final String requiredCharge = dataSnapshot.getValue(String.class);
@@ -588,13 +652,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String respondingCar = dataSnapshotSuper.getKey();
                 Log.d(TAG, "respondingCarIs: "+respondingCar);
                 DatabaseReference donatingChargeTempRef = dataSnapshotSuper.child("donatingCharge").getRef();
-                donatingChargeTempRef.addValueEventListener(new ValueEventListener() {
+                donatingChargeTempRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         String donatingCharge = dataSnapshot.getValue(String.class);
                         Log.d(TAG, "donatingChargeIs :"+donatingCharge);
                         DatabaseReference otpRef = dataSnapshotSuper.child("OTP").getRef();
-                        otpRef.addValueEventListener(new ValueEventListener() {
+                        otpRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 String otp = dataSnapshot.getValue(String.class);
@@ -608,7 +672,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                             public void onLocationResult(String key, GeoLocation location) {
                                                 donorMarker = mMap.addMarker(new MarkerOptions()
                                                 .position(new LatLng(location.latitude, location.longitude))
-                                                .title("Donor Car"));
+                                                .title("Donor Car")
+                                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.o_car)));
                                                 secondaryDestinationLocation = new Location(LocationManager.GPS_PROVIDER);
                                                 secondaryDestinationLocation.setLatitude(location.latitude);
                                                 secondaryDestinationLocation.setLongitude(location.longitude);
