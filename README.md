@@ -4,7 +4,7 @@ Charge2GO is a smart barter system to exchange charge between electric cars to r
 
 # Current Problem
 
-write current problem here
+<write current problem here>
 
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/problem_map.png" width="250">
@@ -14,7 +14,7 @@ write current problem here
 
 # Proposed Solution
 
-write proposed solution here
+<write proposed solution here>
 
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/solution_map.png" width="250">
@@ -25,9 +25,11 @@ write proposed solution here
 # How to use the application
 
 ## Travel to destination
+<describe>
 
 ## Request for charge
-
+<describe>
+  
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/request_Interface.jpeg" width="250">
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -36,11 +38,14 @@ write proposed solution here
 
 ## Respond to request for charge
 
+<describe>
+  
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/response_Interface.jpeg" width="250">
 </p>
 
 ## Travel to donor
+<describe>
 
 ---
 
