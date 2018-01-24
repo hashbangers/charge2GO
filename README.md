@@ -30,9 +30,7 @@ write proposed solution here
 
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/request_Interface.jpeg" width="250">
-</p>
-
-<p align="center">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/requesting_state.jpeg" width="250">
 </p>
 
