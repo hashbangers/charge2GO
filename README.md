@@ -4,16 +4,20 @@ Charge2GO is a smart barter system to exchange charge between electric cars to r
 
 # Current Problem
 
+write current problem here
+
 <p align="center">
-  <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/problem_map.png">
+  <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/problem_map.png" width="250">
 </p>
 
 ---
 
 # Proposed Solution
 
+write proposed solution here
+
 <p align="center">
-  <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/solution_map.png" width="200">
+  <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/solution_map.png" width="250">
 </p>
 
 ---
