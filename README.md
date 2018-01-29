@@ -25,11 +25,13 @@ How would it be if every electric car on the road could be potential charging st
 # How to use the application
 
 ## Travel to destination
+
 First , on the launch screen of the app, the user enters his name and the units of charge he has at the start of his journey. He also can select which type of car he is travelling in. Next on the map, he chooses the destination location and starts his travel.
-Once his charge drops below a certain threshold a pop up appears saying he can request for charge. In the pop up he chooses the units of charge he requires.
+
 
 ## Request for charge
-<describe>
+
+Once his charge drops below a certain threshold a pop up appears saying he can request for charge. In the pop up he chooses the units of charge he requires.Now the request message is sent to all the neighbouring cars in a 4 mile radius.
   
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/request_Interface.jpeg" width="250">
