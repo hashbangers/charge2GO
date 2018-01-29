@@ -14,7 +14,7 @@ The current problem with all the electric vehicle owners is Range Anxiety as a r
 
 # Proposed Solution
 
-<write proposed solution here>
+How would it be if every electric car on the road could be potential charging station. This way the vehicle owners can obtain charge not only from other charging stations but also from the stationary cars on the road. The donor ( the owner of the vehicle willing to donate charge) gets an incentive based on the number of units of charge he willing  to donate.
 
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/solution_map.png" width="250">
