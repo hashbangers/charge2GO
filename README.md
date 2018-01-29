@@ -4,7 +4,7 @@ Charge2GO is a smart barter system to exchange charge between electric cars to r
 
 # Current Problem
 
-<write current problem here>
+The current problem with all the electric vehicle owners is Range Anxiety as a result you never know when you will run out of charge. When you do, you never know where the nearest unoccupied charging station is.
 
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/problem_map.png" width="250">
