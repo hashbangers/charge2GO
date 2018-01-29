@@ -48,7 +48,8 @@ If a car is within the 4 mile radius of the requesting car and has enoigh charge
 </p>
 
 ## Travel to donor
-<describe>
+
+Once the donor accepts the request, an otp is sent to the requesting car. The requesting car travels to the location of the donor car, keys in the otp which hill unlock the hatch to let him charge his car
 
 ---
 
