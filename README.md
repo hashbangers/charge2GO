@@ -41,7 +41,7 @@ Once his charge drops below a certain threshold a pop up appears saying he can r
 
 ## Respond to request for charge
 
-<describe>
+If a car is within the 4 mile radius of the requesting car and has enoigh charge then a pop up will appear on the donor s side showing him the location of the requesting car and the units of charge requested. Along with this,  the max units of charge that he can donate is displayed in the popup. In this popup the donor can enter the units of charge he is willing to donate and the credit points that he will recieve can be seen by him.
   
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/response_Interface.jpeg" width="250">
