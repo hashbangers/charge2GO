@@ -55,6 +55,7 @@ Once the donor accepts the request, an otp is sent to the requesting car. The re
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/travelling_state.jpeg" width="250">
 </p>
+
 ---
 
 # Built With
