@@ -77,10 +77,10 @@ Once the donor accepts the request, an OTP is sent to the requesting car. The re
 
 # Team Members
 
-[Abhijeeth Padarthi](https://github.com/rkinabhi)
-[Arkoprabho Bhattacharjee](https://github.com/)
-[Aravind Subramaniam](https://github.com/aravind098)
-[Ayush Agrawal](https://github.com/ayush2098)
+* [Abhijeeth Padarthi](https://github.com/rkinabhi)
+* [Arkoprabho Bhattacharjee](https://github.com/)
+* [Aravind Subramaniam](https://github.com/aravind098)
+* [Ayush Agrawal](https://github.com/ayush2098)
 
 ---
 
