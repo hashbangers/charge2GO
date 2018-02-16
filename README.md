@@ -1,10 +1,10 @@
 # charge2GO
 
-Charge2GO is a smart barter system to exchange charge between electric cars to reduce downtime.
+**charge2GO** is a smart barter system for the exchange of charge between electric cars to reduce downtime.
 
 # Current Problem
 
-The current problem with all the electric vehicle owners is Range Anxiety as a result you never know when you will run out of charge. When you do, you never know where the nearest unoccupied charging station is.
+The current problem with all the electric vehicle owners is *Range Anxiety*. As a result, you never know when you might run out of charge; and when you do, the nearest unoccupied charging station might be be unreachable.
 
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/problem_map.png" width="250">
@@ -65,6 +65,15 @@ Once the donor accepts the request, an otp is sent to the requesting car. The re
 * [Photoshop](www.adobe.com/Photoshop) creation of icons and images
 * [Firebase](https://firebase.google.com) Database 
 * [Google Maps API](https://developers.google.com/maps) 
+
+---
+
+# Team Members
+
+[Abhijeeth Padarthi](https://github.com/rkinabhi)
+[Arkoprabho Bhattacharjee](https://github.com/)
+[Aravind Subramaniam](https://github.com/aravind098)
+[Ayush Agrawal](https://github.com/ayush2098)
 
 ---
 
