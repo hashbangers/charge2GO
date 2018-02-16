@@ -1,10 +1,14 @@
 # charge2GO
 
+<p align="center">
+  <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/charge2GO.png" width="230">
+</p>
+
 **charge2GO** is a smart barter system for the exchange of charge between electric cars to reduce downtime.
 
 # Current Problem
 
-The current problem with all the electric vehicle owners is *Range Anxiety*. As a result, you never know when you might run out of charge; and when you do, the nearest unoccupied charging station might be be unreachable.
+All electric vehicle owners suffer from *Range Anxiety*. Range Anxiety can be described as follows: you never know when you might run out of charge; and when you do, the nearest unoccupied charging station might be be unreachable/unavailable.
 
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/problem_map.png" width="250">
@@ -14,7 +18,7 @@ The current problem with all the electric vehicle owners is *Range Anxiety*. As 
 
 # Proposed Solution
 
-How would it be if every electric car on the road could be potential charging station. This way the vehicle owners can obtain charge not only from other charging stations but also from the stationary cars on the road. The donor ( the owner of the vehicle willing to donate charge) gets an incentive based on the number of units of charge he willing  to donate.
+What if every electric car on the road was a potential charging station? This way vehicle owners can obtain charge not only from other charging stations but also from stationary cars on the road. The donor (the owner of the vehicle willing to donate charge) gets an incentive based on the number of units of charge he/she donates.
 
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/solution_map.png" width="250">
