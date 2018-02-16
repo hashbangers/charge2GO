@@ -18,6 +18,10 @@ All electric vehicle owners suffer from *Range Anxiety*. Range Anxiety can be de
 
 # Proposed Solution
 
+<p align="center">
+  <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/merc_image.png" width="700">
+</p>
+
 What if every electric car on the road was a potential charging station? This way vehicle owners can obtain charge not only from other charging stations but also from stationary cars on the road. The donor (the owner of the vehicle willing to donate charge) gets an incentive based on the number of units of charge he/she donates.
 
 <p align="center">
@@ -30,12 +34,12 @@ What if every electric car on the road was a potential charging station? This wa
 
 ## Travel to destination
 
-First , on the launch screen of the app, the user enters his name and the units of charge he has at the start of his journey. He also can select which type of car he is travelling in. Next on the map, he chooses the destination location and starts his travel.
+Right after the app launches, the user enters his name and the units of charge he has at the start of the journey. He can also select the type/model of car he is travelling in. Next, on the map, he chooses the destination location and starts his travel.
 
 
 ## Request for charge
 
-Once his charge drops below a certain threshold a pop up appears saying he can request for charge. In the pop up he chooses the units of charge he requires.Now the request message is sent to all the neighbouring cars in a 4 mile radius.
+Once his charge drops below a certain threshold value, a pop-up appears saying that he can request for charge. In the pop-up, he enters the units of charge he requires. This request message is then sent to all the neighbouring cars in a 4-mile radius.
   
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/request_Interface.jpeg" width="250">
@@ -45,7 +49,7 @@ Once his charge drops below a certain threshold a pop up appears saying he can r
 
 ## Respond to request for charge
 
-If a car is within the 4 mile radius of the requesting car and has enoigh charge then a pop up will appear on the donor s side showing him the location of the requesting car and the units of charge requested. Along with this,  the max units of charge that he can donate is displayed in the popup. In this popup the donor can enter the units of charge he is willing to donate and the credit points that he will recieve can be seen by him.
+If a car is within the 4-mile radius of the requesting car and has enough charge, a pop-up will appear on the donor's side showing him the location of the requesting car and the units of charge requested. Along with this, the max units of charge that he can donate is displayed in the pop-up. In this pop-up, the donor can enter the units of charge he is willing to donate - based on this, the credit points that he will receive on completing the *charge transaction* is shown to him.
   
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/response_Interface.jpeg" width="250">
@@ -53,8 +57,7 @@ If a car is within the 4 mile radius of the requesting car and has enoigh charge
 
 ## Travel to donor
 
-Once the donor accepts the request, an otp is sent to the requesting car. The requesting car travels to the location of the donor car, keys in the otp which hill unlock the hatch to let him charge his car
-
+Once the donor accepts the request, an OTP is sent to the requesting car. The requesting car travels to the location of the donor car, keys in the OTP and thus unlocks the hatch to gain access to the charging mechanism.
 
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/travelling_state.jpeg" width="250">
