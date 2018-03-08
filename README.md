@@ -14,8 +14,6 @@ All electric vehicle owners suffer from *Range Anxiety*. Range Anxiety can be de
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/problem_map.png" width="250">
 </p>
 
----
-
 # Proposed Solution
 
 <p align="center">
@@ -27,8 +25,6 @@ What if every electric car on the road was a potential charging station? This wa
 <p align="center">
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/solution_map.png" width="250">
 </p>
-
----
 
 # How to use the application
 
@@ -63,8 +59,6 @@ Once the donor accepts the request, an OTP is sent to the requesting car. The re
   <img src="https://github.com/hashbangers/charge2GO/blob/master/screenshots/travelling_state.jpeg" width="250">
 </p>
 
----
-
 # Built With
 
 * [Java](https://java.com/en/) 
@@ -73,16 +67,12 @@ Once the donor accepts the request, an OTP is sent to the requesting car. The re
 * [Firebase](https://firebase.google.com) Database 
 * [Google Maps API](https://developers.google.com/maps) 
 
----
-
 # Team Members
 
 * [Abhijeeth Padarthi](https://github.com/rkinabhi)
 * [Arkoprabho Bhattacharjee](https://github.com/)
 * [Aravind Subramaniam](https://github.com/aravind098)
 * [Ayush Agrawal](https://github.com/ayush2098)
-
----
 
 # License
 
